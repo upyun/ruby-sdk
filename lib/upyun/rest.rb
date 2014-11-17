@@ -1,22 +1,16 @@
 # encoding: utf-8
 require 'restclient'
-require 'digest/md5'
 require 'uri'
 
 module Upyun
   class Rest
-    attr_accessor :endpoint
+    include Utils
 
     def initialize(bucket, operator, password, endpoint=Upyun::ED_AUTO)
       @bucket = bucket
       @operator = operator
       @password = md5(password)
       @endpoint = endpoint
-    end
-
-    def endpoint=(ep)
-      raise ArgumentError, "Valid endpoint are #{Upyun::ED_LIST}" unless Upyun::ED_LIST.member?(ep)
-      @endpoint = ep
     end
 
     def put(path, file, headers={})
@@ -133,10 +127,6 @@ module Upyun
       def sign(method, date, path, length)
         sign = "#{method.to_s.upcase}&#{path}&#{date}&#{length}&#{@password}"
         "UpYun #{@operator}:#{md5(sign)}"
-      end
-
-      def md5(str)
-        Digest::MD5.hexdigest(str)
       end
   end
 end

@@ -1,4 +1,5 @@
 require 'upyun/version'
+require 'upyun/utils'
 require 'upyun/rest'
 require 'upyun/form'
 

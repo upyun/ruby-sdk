@@ -1,12 +1,13 @@
 # encoding: utf-8
 require 'restclient'
-require 'digest/md5'
 require 'base64'
 require 'json'
 require 'active_support/hash_with_indifferent_access'
 
 module Upyun
   class Form
+    include Utils
+
     VALID_PARAMS = %w(
       bucket
       save-key
@@ -31,20 +32,12 @@ module Upyun
       ext-param
     )
 
-    attr_accessor :endpoint, :bucket, :password
+    attr_accessor :bucket, :password
 
     def initialize(password, bucket)
       @password = password
       @bucket = bucket
       @endpoint = ED_AUTO
-    end
-
-    def endpoint=(ep)
-      unless Upyun::ED_LIST.member?(ep)
-        raise ArgumentError, "Valid endpoint are #{Upyun::ED_LIST}"
-      end
-
-      @endpoint = ep
     end
 
     def upload(file, opts={})
@@ -81,7 +74,7 @@ module Upyun
       end
 
       def signature
-        Digest::MD5.hexdigest("#{@_policy}&#{@password}")
+        md5("#{@_policy}&#{@password}")
       end
 
       def policy_json(opts)
