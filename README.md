@@ -1,4 +1,4 @@
-#[UpYun](https://www.upyun.com) [Rest API](http://docs.upyun.com/api/rest_api/) 和 [Form API](http://docs.upyun.com/api/form_api/) 的 Ruby SDK
+#[UpYun](https://www.upyun.com) [Rest API](http://docs.upyun.com/api/rest_api/) 和 [Form API](http://docs.upyun.com/api/form_api/) 的 Ruby SDK ![build](https://travis-ci.org/upyun/ruby-sdk.svg)
 
 
 ## 安装说明
