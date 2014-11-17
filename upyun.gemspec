@@ -8,9 +8,9 @@ Gem::Specification.new do |spec|
   spec.version       = UpYun::VERSION
   spec.authors       = ["jsvisa"]
   spec.email         = ["delweng@gmail.com"]
-  spec.summary       = "Upyun API SDK"
-  spec.description   = "UpYun API SDK"
-  spec.homepage      = ""
+  spec.summary       = "UpYun API SDK"
+  spec.description   = "UpYun Rest API and Form API SDK"
+  spec.homepage      = "https://github.com/upyun/ruby-sdk"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")
@@ -19,6 +19,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "rest-client", ">= 1.6.7"
+  spec.add_dependency "activesupport", "~> 4.1.0"
 
   spec.add_development_dependency "bundler", "~> 1.7"
   spec.add_development_dependency "rake", "~> 10.0"

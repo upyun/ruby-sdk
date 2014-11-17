@@ -91,33 +91,66 @@ describe "UpYun Restful API Basic testing" do
       expect(@upyun.usage).to be_instance_of(Fixnum)
     end
   end
+end
 
-  describe "Form Upload" do
-    before :all do
-      @form = UpYun::Form.new("ESxWIoMmF39nSDY7CSFUsC7s50U=", {bucket: "sdkfile"})
-      @file = File.expand_path("../upyun.jpg", __FILE__)
+describe "Form Upload" do
+  before :all do
+    @form = UpYun::Form.new('ESxWIoMmF39nSDY7CSFUsC7s50U=', 'sdkfile')
+    @file = File.expand_path("../upyun.jpg", __FILE__)
+  end
+
+  describe ".upload" do
+    it "with default attributes should success" do
+      res = @form.upload(@file)
+      expect(res.keys).to include(:code, :message, :url, :time)
+      expect(res[:code]).to eq(200)
+      expect(res[:message]).to match(/ok/)
+      now = Time.now
+      expect(res[:url]).to eq("/#{now.year}/#{now.mon}/#{now.day}/upyun.jpg")
     end
 
-    describe ".upload" do
-      it "with default attributes should success" do
-        res = @form.upload(@file)
-        expect(res.keys).to include(:code, :message, :url, :time)
-        expect(res[:code]).to eq(200)
-        now = Time.now
-        expect(res[:url]).to eq("/#{now.year}/#{now.mon}/#{now.day}/upyun.jpg")
-      end
+    it "set 'save-key' should success" do
+      res = @form.upload(@file, {'save-key' => 'name-ed keypath'})
+      expect(res[:code]).to eq(200)
+      expect(res[:url]).to eq('name-ed keypath')
+    end
 
-      it "set 'save-key' should success" do
-        res = @form.upload(@file, {:"save-key" => "name-ed keypath"})
-        expect(res[:code]).to eq(200)
-        expect(res[:url]).to eq("name-ed keypath")
-      end
+    it "set not correct 'expiration' should return 403 with expired" do
+      res = @form.upload(@file, {'expiration' => 102400})
+      expect(res[:code]).to eq(403)
+      expect(res[:message]).to match(/Authorize has expired/)
+    end
 
-      it "set 'expiration' should success" do
-        res = @form.upload(@file, {:"expiration" => 102400})
-        expect(res[:code]).to eq(403)
-        expect(res)
-      end
+    it "set 'return-url' should return 302 with 'location' header" do
+      res = @form.upload(@file, {'return-url' => 'http://www.example.com'})
+      expect(res.code).to eq(302)
+      expect(res.headers.key?(:location)).to be true
+    end
+
+    it "set 'return-url' and handle failed, should also return 302 with 'location' header" do
+      opts = {
+        'image-width-range' => '0,10',
+        'return-url' => 'http://www.example.com'
+      }
+      res = @form.upload(@file, opts)
+      expect(res.code).to eq(302)
+      expect(res.headers.key?(:location)).to be true
+    end
+
+    it "set 'notify-url' should return 200 success", current: true do
+      res = @form.upload(@file, {'notify-url' => 'http://www.example.com'})
+      expect(res).to be_instance_of(Hash)
+      expect(res[:code]).to eq(200)
+    end
+
+    it "set 'notify-url' and handle failed, should return 403 failed", current: true do
+      opts = {
+        'image-width-range' => '0,10',
+        'notify-url' => 'http://www.example.com'
+      }
+      res = @form.upload(@file, opts)
+      expect(res).to be_instance_of(Hash)
+      expect(res[:code]).to eq(403)
     end
   end
 end
