@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.version       = UpYun::VERSION
   spec.authors       = ["jsvisa"]
   spec.email         = ["delweng@gmail.com"]
-  spec.summary       = "UpYun API SDK"
-  spec.description   = "UpYun Rest API and Form API SDK"
+  spec.summary       = "UPYUN API SDK"
+  spec.description   = "UPYUN Rest API and Form API SDK"
   spec.homepage      = "https://github.com/upyun/ruby-sdk"
   spec.license       = "MIT"
 
