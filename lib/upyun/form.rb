@@ -3,10 +3,11 @@ require 'restclient'
 require 'digest/md5'
 require 'base64'
 require 'json'
+require 'active_support/hash_with_indifferent_access'
 
 module UpYun
   class Form
-    VALID_PARAMS = %i(
+    VALID_PARAMS = %w(
       bucket
       save-key
       expiration
@@ -32,30 +33,45 @@ module UpYun
 
     attr_accessor :endpoint, :bucket, :password
 
-    def initialize(password, opts)
+    def initialize(password, bucket)
       @password = password
+      @bucket = bucket
       @endpoint = ED_AUTO
-      raise ArgumentError, "bucket must be assigned" unless opts.key?(:bucket)
-      @bucket = opts[:bucket]
-      @opts = opts.dup
-      @opts[:"save-key"] = opts[:"save-key"] || opts[:save_key] || '/{year}/{mon}/{day}/{filename}{.suffix}'
-      @opts[:expiration] = opts[:expiration] || Time.now.to_i + 600
     end
 
     def endpoint=(ep)
-      raise ArgumentError, "Valid endpoint are #{UpYun::ED_LIST}" unless UpYun::ED_LIST.member?(ep)
+      unless UpYun::ED_LIST.member?(ep)
+        raise ArgumentError, "Valid endpoint are #{UpYun::ED_LIST}"
+      end
+
       @endpoint = ep
     end
 
     def upload(file, opts={})
-      opts = @opts.merge(opts)
-      payload = {policy: policy(opts), signature: signature, file: File.new(file, "rb")}
-      RestClient.post("http://#{@endpoint}/#{@bucket}", payload) do |res|
-        body = JSON.parse(res.body, symbolize_names: true)
+      base_opts = HashWithIndifferentAccess.new({
+        'bucket' => @bucket,
+        'save-key' => '/{year}/{mon}/{day}/{filename}{.suffix}',
+        'expiration' => Time.now.to_i + 600
+      })
 
-        # UpYun have a small bug for the code, we have to adjust it to integer
-        body[:code] = body[:code].to_i
-        body
+      payload = {
+        policy: policy(base_opts.merge(opts)),
+        signature: signature,
+        file: File.new(file, 'rb')
+      }
+
+      RestClient.post("http://#{@endpoint}/#{@bucket}", payload) do |res|
+        case res.code
+        when 302
+          res
+        else
+          body = JSON.parse(res.body, symbolize_names: true)
+
+          # TODO UpYun have a small bug for the `code`,
+          # we have to adjust it to integer
+          body[:code] = body[:code].to_i
+          body
+        end
       end
     end
 
