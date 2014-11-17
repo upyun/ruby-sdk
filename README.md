@@ -1,6 +1,7 @@
 # UPYUN sdk for Ruby
 [![RubyGems](https://img.shields.io/gem/dtv/upyun.svg?style=flat)](https://rubygems.org/gems/upyun)
 [![Build status](https://img.shields.io/travis/upyun/ruby-sdk.svg?style=flat)](https://travis-ci.org/upyun/ruby-sdk)
+[![Coverage Status](https://img.shields.io/coveralls/upyun/ruby-sdk.svg)](https://coveralls.io/r/upyun/ruby-sdk)
 
 [UPYUN](https://www.upyun.com) [Rest API](http://docs.upyun.com/api/rest_api/) 和 [Form API](http://docs.upyun.com/api/form_api/) 的 Ruby SDK !
 
