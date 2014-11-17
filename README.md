@@ -30,7 +30,7 @@ gem 'upyun'
 ```ruby
 require 'upyun'
 
-upyun = UpYun::Rest.new('bucket', 'operator', 'password', 'endpoint')
+upyun = Upyun::Rest.new('bucket', 'operator', 'password', 'endpoint')
 ```
 
 其中，参数 `bucket` 为空间名称，`operator` 为授权操作员帐号, `password` 为授权操作员密码，必选。
@@ -39,23 +39,23 @@ upyun = UpYun::Rest.new('bucket', 'operator', 'password', 'endpoint')
 在初始化时可由参数 `endpoint` 进行设置，详情查阅 [API 域名](http://docs.upyun.com/api/)。其可选的值有：
 
 ```ruby
-UpYun::ED_AUTO     # 自动判断最优线路
-UpYun::ED_TELECOM  # 电信接入点
-UpYun::ED_UNION    # 联通（网通）接入点
-UpYun::ED_CMCC     # 移动（铁通）接入点
+Upyun::ED_AUTO     # 自动判断最优线路
+Upyun::ED_TELECOM  # 电信接入点
+Upyun::ED_UNION    # 联通（网通）接入点
+Upyun::ED_CMCC     # 移动（铁通）接入点
 ```
 
-默认设置为 `UpYun::ED_AUTO` ，但是我们推荐根据服务器网络状况，手动设置合理的接入点以获取最佳的访问速度。
+默认设置为 `Upyun::ED_AUTO` ，但是我们推荐根据服务器网络状况，手动设置合理的接入点以获取最佳的访问速度。
 同时，也可以在初始化一个实例之后通过：
 
 ```ruby
-upyun.endpoint = UpYun::ED_CMCC
+upyun.endpoint = Upyun::ED_CMCC
 ```
 更改接入点。
 
 #### 上传文件
 
-默认使用 UpYun 基本 Header 头上传文件:
+默认使用 Upyun 基本 Header 头上传文件:
 
 ```ruby
 upyun.put('/save/to/path', 'file or binary')
@@ -64,7 +64,7 @@ upyun.put('/save/to/path', 'file or binary')
 **注：**
 > 这里只指定了又拍云必选的 `Date`, `Content-Length` 两个 Header，其它 Header 信息均未指定
 
-也可以使用 UpYun 定义的额外 Header 头上传文件，详情查阅 [Rest API](http://docs.upyun.com/api/rest_api/), 如:
+也可以使用 Upyun 定义的额外 Header 头上传文件，详情查阅 [Rest API](http://docs.upyun.com/api/rest_api/), 如:
 
 ```ruby
 headers = {'Content-Type' => 'image/jpeg', 'x-gmkerl-type' => 'fix_width', 'x-gmkerl-value' => 1080}
@@ -166,15 +166,15 @@ upyun.usage
 ```ruby
 require 'upyun'
 
-upyun = UpYun::Form.new('form-password', 'bucket')
+upyun = Upyun::Form.new('form-password', 'bucket')
 ```
 
 其中，参数 `form-password` 为空间表单 API 密钥，可通过又拍云后台获取，`bucket` 为空间名称（必选）。
 
-与 Rest API 相似， 表单 API 也有个实例变量 `endpoint` 代表又拍云基本域名，默认设置为 `UpYun::ED_AUTO` ，也可以在初始化一个实例之后通过：
+与 Rest API 相似， 表单 API 也有个实例变量 `endpoint` 代表又拍云基本域名，默认设置为 `Upyun::ED_AUTO` ，也可以在初始化一个实例之后通过：
 
 ```ruby
-upyun.endpoint = UpYun::ED_CMCC
+upyun.endpoint = Upyun::ED_CMCC
 ```
 更改接入点。
 
