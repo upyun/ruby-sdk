@@ -3,11 +3,11 @@ require 'restclient'
 require 'digest/md5'
 require 'uri'
 
-module UpYun
+module Upyun
   class Rest
     attr_accessor :endpoint
 
-    def initialize(bucket, operator, password, endpoint=UpYun::ED_AUTO)
+    def initialize(bucket, operator, password, endpoint=Upyun::ED_AUTO)
       @bucket = bucket
       @operator = operator
       @password = md5(password)
@@ -15,7 +15,7 @@ module UpYun
     end
 
     def endpoint=(ep)
-      raise ArgumentError, "Valid endpoint are #{UpYun::ED_LIST}" unless UpYun::ED_LIST.member?(ep)
+      raise ArgumentError, "Valid endpoint are #{Upyun::ED_LIST}" unless Upyun::ED_LIST.member?(ep)
       @endpoint = ep
     end
 

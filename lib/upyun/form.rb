@@ -5,7 +5,7 @@ require 'base64'
 require 'json'
 require 'active_support/hash_with_indifferent_access'
 
-module UpYun
+module Upyun
   class Form
     VALID_PARAMS = %w(
       bucket
@@ -40,8 +40,8 @@ module UpYun
     end
 
     def endpoint=(ep)
-      unless UpYun::ED_LIST.member?(ep)
-        raise ArgumentError, "Valid endpoint are #{UpYun::ED_LIST}"
+      unless Upyun::ED_LIST.member?(ep)
+        raise ArgumentError, "Valid endpoint are #{Upyun::ED_LIST}"
       end
 
       @endpoint = ep
@@ -67,7 +67,7 @@ module UpYun
         else
           body = JSON.parse(res.body, symbolize_names: true)
 
-          # TODO UpYun have a small bug for the `code`,
+          # TODO Upyun have a small bug for the `code`,
           # we have to adjust it to integer
           body[:code] = body[:code].to_i
           body

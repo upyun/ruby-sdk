@@ -1,8 +1,8 @@
 require File.dirname(__FILE__) + "/spec_helper"
 
-describe "UpYun Restful API Basic testing" do
+describe "Upyun Restful API Basic testing" do
   before :all do
-    @upyun = UpYun::Rest.new("sdkfile", "tester", "grjxv2mxELR3")
+    @upyun = Upyun::Rest.new("sdkfile", "tester", "grjxv2mxELR3")
     @file = File.expand_path("../upyun.jpg", __FILE__)
     @str = "This is a binary string, not a file"
   end
@@ -95,7 +95,7 @@ end
 
 describe "Form Upload" do
   before :all do
-    @form = UpYun::Form.new('ESxWIoMmF39nSDY7CSFUsC7s50U=', 'sdkfile')
+    @form = Upyun::Form.new('ESxWIoMmF39nSDY7CSFUsC7s50U=', 'sdkfile')
     @file = File.expand_path("../upyun.jpg", __FILE__)
   end
 

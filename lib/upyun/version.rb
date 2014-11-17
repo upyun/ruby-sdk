@@ -1,3 +1,3 @@
-module UpYun
-  VERSION = "1.0.0"
+module Upyun
+  VERSION = "1.0.1"
 end

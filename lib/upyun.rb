@@ -2,7 +2,7 @@ require 'upyun/version'
 require 'upyun/rest'
 require 'upyun/form'
 
-module UpYun
+module Upyun
   DOMAIN = 'api.upyun.com'
   ED_AUTO = "v0.#{DOMAIN}"
   ED_TELECOM = "v1.#{DOMAIN}"

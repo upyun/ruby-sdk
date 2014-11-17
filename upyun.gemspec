@@ -5,7 +5,7 @@ require 'upyun/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "upyun"
-  spec.version       = UpYun::VERSION
+  spec.version       = Upyun::VERSION
   spec.authors       = ["jsvisa"]
   spec.email         = ["delweng@gmail.com"]
   spec.summary       = "UPYUN API SDK"
