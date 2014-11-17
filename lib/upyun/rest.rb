@@ -7,11 +7,11 @@ module UpYun
   class Rest
     attr_accessor :endpoint
 
-    def initialize(bucket, username, password, endpoint=nil)
+    def initialize(bucket, operator, password, endpoint=UpYun::ED_AUTO)
       @bucket = bucket
-      @username = username
+      @operator = operator
       @password = md5(password)
-      @endpoint = endpoint || UpYun::ED_AUTO
+      @endpoint = endpoint
     end
 
     def endpoint=(ep)
@@ -33,17 +33,24 @@ module UpYun
 
     def get(path, savepath=nil)
       res = request(:get, path)
-      return res if res.is_a?(Hash)
+      return res if res.is_a?(Hash) || !savepath
 
-      savepath ? File.write(savepath, res) : res
+      dir = File.dirname(savepath)
+      FileUtils.mkdir_p(dir) unless File.directory?(dir)
+      File.write(savepath, res)
+    end
+
+    def getinfo(path)
+      hds = request(:head, path)
+      hds = hds.key?(:error) ? hds : format_info(hds)
     end
 
     def delete(path)
       request(:delete, path)
     end
 
-    def mkdir(path, auto=true)
-      request(:post, path, {headers: {folder: true, mkdir: auto}})
+    def mkdir(path)
+      request(:post, path, {headers: {folder: true, mkdir: true}})
     end
 
     def getlist(path="/")
@@ -71,9 +78,11 @@ module UpYun
 
     private
 
-      def res_msg(res)
-        return true if res.respond_to?(:code) and res.code == 200
-        res
+      def format_info(hds)
+        selected = hds.select { |k| k.to_s.match(/^x_upyun/i) }
+        selected.reduce({}) do |memo, (k, v)|
+          memo.merge!({k[8..-1].to_sym => /^\d+$/.match(v) ? v.to_i : v})
+        end
       end
 
       def fullpath(path)
@@ -97,20 +106,21 @@ module UpYun
 
         if [:post, :patch, :put].include? method
           RestClient.send(method, url, options[:body].nil? ? "" : options[:body], headers) do |res|
-            case res.code
-            when 200
-              true
-            else
-              {error: {code: res.code, msg: res.body}}
-            end
+            res.code == 200 ? true : {error: {code: res.code, message: res.body}}
           end
         else
           RestClient.send(method, url, headers) do |res|
-            case res.code
-            when 200
-              method == :get ? res.body : true
+            if res.code == 200
+              case method
+              when :get
+                res.body
+              when :head
+                res.headers
+              else
+                true
+              end
             else
-              {error: {code: res.code, msg: res.body}}
+              {error: {code: res.code, message: res.body}}
             end
           end
         end
@@ -122,7 +132,7 @@ module UpYun
 
       def sign(method, date, path, length)
         sign = "#{method.to_s.upcase}&#{path}&#{date}&#{length}&#{@password}"
-        "UpYun #{@username}:#{md5(sign)}"
+        "UpYun #{@operator}:#{md5(sign)}"
       end
 
       def md5(str)
