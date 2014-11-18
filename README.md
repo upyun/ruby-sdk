@@ -3,26 +3,32 @@
 [![Build status](https://img.shields.io/travis/upyun/ruby-sdk.svg?style=flat)](https://travis-ci.org/upyun/ruby-sdk)
 [![Coverage Status](https://img.shields.io/coveralls/upyun/ruby-sdk.svg)](https://coveralls.io/r/upyun/ruby-sdk)
 
-[UPYUN](https://www.upyun.com) [Rest API](http://docs.upyun.com/api/rest_api/) 和 [Form API](http://docs.upyun.com/api/form_api/) 的 Ruby SDK !
+[UPYUN](https://www.upyun.com) 官方 [Rest API](http://docs.upyun.com/api/rest_api/) 以及 [Form API](http://docs.upyun.com/api/form_api/) SDK !
 
 
-## 安装说明
+## 安装
 
-*Gemfile* 中加入以下代码
+在 `Gemfile` 中加入以下代码
 
 ```ruby
-gem 'upyun'
+gem 'upyun', '~> 1.0.1'
 ```
 
-然后执行:
+然后执行如下命令安装:
 
-    $ bundle
+```
+$ bundle
+```
 
-或者可以手动安装:
+或者可以使用 `gem` 手动安装:
 
-    $ gem install upyun
+```
+$ gem install upyun
+```
 
 ## 基本使用
+
+在使用本 SDK 之前，您需要拥有一个有效的 UPYUN 空间，并做好操作员的授权。详情可见 [开发者指南](http://docs.upyun.com/guide/#_2)
 
 ### Rest API 使用
 
@@ -33,11 +39,14 @@ require 'upyun'
 
 upyun = Upyun::Rest.new('bucket', 'operator', 'password', 'endpoint')
 ```
+**参数**
 
-其中，参数 `bucket` 为空间名称，`operator` 为授权操作员帐号, `password` 为授权操作员密码，必选。
+* `bucket`: UPYUN 空间名称
+* `operator`: 授权操作员帐号
+* `password`: 授权操作员密码
+* `endpoint`（可选）（默认：`Upyun::ED_AUTO`）: API接入点，可根据具体网络情况设置最优的接入点，详情见 [API 域名](http://docs.upyun.com/api/)
 
-参数 `endpoint` 为又拍云存储 API 接入点，根据国内的网络情况，又拍云存储 API 提供了电信、联通（网通）、移动（铁通）数个接入点，
-在初始化时可由参数 `endpoint` 进行设置，详情查阅 [API 域名](http://docs.upyun.com/api/)。其可选的值有：
+其中 `endpoint` 可选值如下：
 
 ```ruby
 Upyun::ED_AUTO     # 自动判断最优线路
@@ -46,31 +55,40 @@ Upyun::ED_UNION    # 联通（网通）接入点
 Upyun::ED_CMCC     # 移动（铁通）接入点
 ```
 
-默认设置为 `Upyun::ED_AUTO` ，但是我们推荐根据服务器网络状况，手动设置合理的接入点以获取最佳的访问速度。
-同时，也可以在初始化一个实例之后通过：
+
+> 在初始化实例后，也可以重新切换 API 接入点，方法如下：
 
 ```ruby
 upyun.endpoint = Upyun::ED_CMCC
 ```
-更改接入点。
 
 #### 上传文件
 
+##### 默认方式
 默认使用 Upyun 基本 Header 头上传文件:
+
+> **注：**
+> 这种方式只指定了又拍云必选的 `Date`, `Content-Length` 两个 Header，其它 Header 信息均未指定
 
 ```ruby
 upyun.put('/save/to/path', 'file or binary')
 ```
-其中 `/save/to/path` 为文件保存路径，  `file or binary` 为本机上文件路径或者文件内容。
-**注：**
-> 这里只指定了又拍云必选的 `Date`, `Content-Length` 两个 Header，其它 Header 信息均未指定
+**参数**
 
-也可以使用 Upyun 定义的额外 Header 头上传文件，详情查阅 [Rest API](http://docs.upyun.com/api/rest_api/), 如:
+* `/save/to/path`： 文件在 UPYUN 空间的保存路径
+* `file or binary`：本地文件路径或文件内容
+
+##### 自定义方式
+您也可以选择使用 API 允许的额外可选 HTTP Header 参数，以使用 API 提供的预处理等功能：
 
 ```ruby
 headers = {'Content-Type' => 'image/jpeg', 'x-gmkerl-type' => 'fix_width', 'x-gmkerl-value' => 1080}
 upyun.put('/save/to/path', 'file or binary', headers)
 ```
+
+其中， `/save/to/path` 和 `file or binary` 和默认上传方式中一致，`headers` 参数即为额外的可选 HTTP Header 参数，详情查阅 [Rest API](http://docs.upyun.com/api/rest_api/#_4)
+
+**返回**
 
 上传成功返回 `true`，失败返回一个 `Hash` 结构: `{error: {code: code, message: message}}`,
 其中 `code` 为又拍云返回的错误码, `message` 为错误信息。
@@ -78,19 +96,32 @@ upyun.put('/save/to/path', 'file or binary', headers)
 
 #### 下载文件
 
+##### 获取文件内容
+
 ```ruby
 file = upyun.get('/path/to/file')
 ```
 
+**参数**
+
+* `'/path/to/file'`: 文件在 UPYUN 空间中的路径
+
+**返回**
 下载成功返回文件信息，失败返回一个 `Hash`: `{error: {code: code, message: message}}`,
 其中 `code` 为又拍云返回的错误码, `message` 为错误信息。
 
-也可以指定保存路径，下载到的文件将写入到保存路径中:
+##### 保存文件至本地
 
 ```ruby
 upyun.get('/path/to/file', 'saved/foo.png')
 ```
 
+**参数**
+
+* `'/path/to/file'`: 文件在 UPYUN 空间中的路径
+* `saved/foo.png`: 文件本地保存路径
+
+**返回**
 下载成功返回获取的文件长度。
 
 
@@ -99,6 +130,11 @@ upyun.get('/path/to/file', 'saved/foo.png')
 ```ruby
 upyun.getinfo('/path/to/file')
 ```
+**参数**
+
+* `'/path/to/file'`: 文件在 UPYUN 空间中的路径
+
+**返回**
 
 成功返回 `Hash` 结构:
 
@@ -120,6 +156,11 @@ upyun.getinfo('/path/to/file')
 ```ruby
 upyun.delete('/path/to/file')
 ```
+**参数**
+
+* `'/path/to/file'`: 文件在 UPYUN 空间中的路径
+
+**返回**
 
 成功返回: `true`,
 
@@ -131,6 +172,12 @@ upyun.delete('/path/to/file')
 upyun.mkdir('/path/to/dir')
 ```
 
+**参数**
+
+* `'/path/to/dir'`: 文件在 UPYUN 空间中的路径
+
+**返回**
+
 成功返回: `true`,
 
 失败返回一个 `Hash`: `{error: {code: code, message: message}}`。
@@ -140,7 +187,11 @@ upyun.mkdir('/path/to/dir')
 ```ruby
 upyun.getlist('/path/to/dir')
 ```
+**参数**
 
+* `'/path/to/dir'`: 文件在 UPYUN 空间中的路径
+
+**返回**
 成功返回一个数组，每个数组成员为一个文件/目录:
 
 ```ruby
@@ -156,6 +207,8 @@ upyun.getlist('/path/to/dir')
 upyun.usage
 ```
 
+**返回**
+
 成功返回空间使用量（单位为 `Byte`）: `12400`,
 
 失败返回一个 `Hash`: `{error: {code: code, message: message}}`。
@@ -167,32 +220,37 @@ upyun.usage
 ```ruby
 require 'upyun'
 
-upyun = Upyun::Form.new('form-password', 'bucket')
+upyun = Upyun::Form.new('form-api-secret', 'bucket')
 ```
 
-其中，参数 `form-password` 为空间表单 API 密钥，可通过又拍云后台获取，`bucket` 为空间名称（必选）。
+**参数**
 
-与 Rest API 相似， 表单 API 也有个实例变量 `endpoint` 代表又拍云基本域名，默认设置为 `Upyun::ED_AUTO` ，也可以在初始化一个实例之后通过：
+* `form-api-secret`: 表单 API 密钥，可通过 UPYUN 用户控制面板获取。
+* `bucket`: UPYUN 空间名称
+
+与 Rest API 相似， 表单 API 也有个实例变量 `endpoint` 代表又拍云基本域名，默认设置为 `Upyun::ED_AUTO` ，也可以在初始化一个实例之后通过如下方式切换：
 
 ```ruby
 upyun.endpoint = Upyun::ED_CMCC
 ```
-更改接入点。
-
 
 #### 上传文件
 
+##### 简化版
 为了简化使用，又拍云文档必选的参数中:
->
-  `save-key` 默认设置为: `'/{year}/{mon}/{day}/{filename}{.suffix}'`
-  `expiration` 默认设置为10分钟: `Time.now.to_i + 600`
 
+> `save-key` 默认设置为: `'/{year}/{mon}/{day}/{filename}{.suffix}'` <br />
+> `expiration` 默认设置为10分钟: `Time.now.to_i + 600`
 
-使用简化版本，不使用额外的策略参数:
+<br />
+
+> 使用简化版本，将不使用额外的策略参数:
 
 ```ruby
 upyun.upload('file')
 ```
+
+**返回**
 上传结果返回一个 `Hash` 结构:
 
 ```ruby
@@ -205,13 +263,15 @@ upyun.upload('file')
 }
 ```
 其中
-  1. `code`: 返回的状态码，`200` 为成功，其它为失败
-  2. `message`: 错误信息，具体查阅 [表单 API 状态代码表](http://docs.upyun.com/api/form_api/#api_2)
-  3. `url`: 上传文件保存路径
-  4. `time`: 请求的时间戳
-  5. `sign`: 签名参数，详情见 [sign与non-sign参数说明](http://docs.upyun.com/api/form_api/#note6)
-  6. 如果在请求中指定了 `ext-param`, 那么返回的结构中也会有 `ext-param` 字段，详情见 [ext-param](http://docs.upyun.com/api/form_api/#note5)
 
+* `code`: 返回的状态码，`200` 为成功，其它为失败
+* `message`: 错误信息，具体查阅 [表单 API 状态代码表](http://docs.upyun.com/api/form_api/#api_2)
+* `url`: 上传文件保存路径
+* `time`: 请求的时间戳
+* `sign`: 签名参数，详情见 [sign与non-sign参数说明](http://docs.upyun.com/api/form_api/#note6)
+* 如果在请求中指定了 `ext-param`, 那么返回的结构中也会有 `ext-param` 字段，详情见 [ext-param](http://docs.upyun.com/api/form_api/#note5)
+
+##### 自定义参数
 可以在上传的时候指定一些策略参数:
 
 ```ruby
@@ -227,10 +287,10 @@ upyun.upload('file', opts)
 详情查阅 [通知规则](http://docs.upyun.com/api/form_api/#notify_return)
 
 
-## Contributing
+## 贡献
 
-1. Fork it ( https://github.com/[my-github-username]/upyun/fork )
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create a new Pull Request
+1. Fork 本仓库 ( https://github.com/upyun/ruby-sdk/fork )
+2. 创建您的新特性分支 (`git checkout -b my-new-feature`)
+3. 提交你的更新 (`git commit -am 'Add some feature'`)
+4. 同步你的代码到 GitHub 远程仓库 (`git push origin my-new-feature`)
+5. 发起 Pull Request 给我们
