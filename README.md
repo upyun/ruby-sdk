@@ -5,6 +5,8 @@
 
 [UPYUN](https://www.upyun.com) 官方 [Rest API](http://docs.upyun.com/api/rest_api/) 以及 [Form API](http://docs.upyun.com/api/form_api/) SDK !
 
+> **注：**
+> `0.x.x` 版本为之前第三方开发者 [veggie89](https://rubygems.org/profiles/veggie89) 开发，后续将不会维护，如果您有使用 `0.x.x` 版本，请尽快切换至 `1.x.x` 版本，以获得最新的官方 SDK 支持
 
 ## 安装
 
