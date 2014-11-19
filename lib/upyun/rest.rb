@@ -1,21 +1,24 @@
 # encoding: utf-8
 require 'restclient'
-require 'uri'
+require 'open-uri'
 
 module Upyun
   class Rest
     include Utils
 
-    def initialize(bucket, operator, password, endpoint=Upyun::ED_AUTO)
+    attr_reader :options
+
+    def initialize(bucket, operator, password, options={timeout: 60}, endpoint=Upyun::ED_AUTO)
       @bucket = bucket
       @operator = operator
       @password = md5(password)
+      @options = options
       @endpoint = endpoint
     end
 
     def put(path, file, headers={})
       raise ArgumentError, "'file' is not an instance of String" unless file.is_a?(String)
-      headers = headers.merge({"mkdir" => true}) unless headers.key?("mkdir")
+      headers = headers.merge({'mkdir' => true}) unless headers.key?('mkdir')
       options = if File.file?(file)
                   {body: File.read(file), length: File.size(file), headers: headers}
                 else
@@ -47,22 +50,23 @@ module Upyun
       request(:post, path, {headers: {folder: true, mkdir: true}})
     end
 
-    def getlist(path="/")
+    def getlist(path='/')
       res = request(:get, path)
       return res if res.is_a?(Hash)
-      res.split("\n").map do |f|
-        attrs = f.split("\t")
+
+      res.split('\n').map do |f|
+        attrs = f.split('\t')
         {
           name: attrs[0],
-          type: attrs[1] == "N" ? :file : :folder,
+          type: attrs[1] == 'N' ? :file : :folder,
           length: attrs[2].to_i,
           last_modified: attrs[3].to_i
         }
       end
     end
 
-    def usage(path="/")
-      res = request(:get, path, {params: "usage"})
+    def usage
+      res = request(:get, '/', {query: 'usage'})
       return res if res.is_a?(Hash)
 
       # RestClient has a bug, body.to_i returns the code instead of body,
@@ -80,30 +84,30 @@ module Upyun
       end
 
       def fullpath(path)
-        "/#{@bucket}#{URI.encode(URI.decode(path[0] == '/' ? path : '/' + path))}"
-      end
-
-      def encode(fullpath, params)
-        URI.join("http://#{@endpoint}", fullpath, params.nil? ? '' : '?' + params).to_s
+        decoded = URI::encode(URI::decode(path.force_encoding('utf-8')))
+        "/#{@bucket}#{decoded.start_with?('/') ? decoded : '/' + decoded}"
       end
 
       def request(method, path, options={})
         fullpath = fullpath(path)
-        url = encode(fullpath, options[:params])
+        query = options[:query]
+        fullpath_query = "#{fullpath}#{query.nil? ? '' : '?' + query}"
         headers = options[:headers] || {}
         date = gmdate
         length = options[:length] || 0
         headers.merge!({
+          'User-Agent' => "Upyun-Ruby-SDK-#{VERSION}",
           'Date' => date,
           'Authorization' => sign(method, date, fullpath, length)
         })
 
         if [:post, :patch, :put].include? method
-          RestClient.send(method, url, options[:body].nil? ? "" : options[:body], headers) do |res|
+          body = options[:body].nil? ? '' : options[:body]
+          rest_client[fullpath_query].send(method, body, headers) do |res|
             res.code == 200 ? true : {error: {code: res.code, message: res.body}}
           end
         else
-          RestClient.send(method, url, headers) do |res|
+          rest_client[fullpath_query].send(method, headers) do |res|
             if res.code == 200
               case method
               when :get
@@ -118,6 +122,10 @@ module Upyun
             end
           end
         end
+      end
+
+      def rest_client
+        @rest_clint ||= RestClient::Resource.new("http://#{@endpoint}", options)
       end
 
       def gmdate

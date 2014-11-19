@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/spec_helper'
+require 'uri'
 
 describe "Upyun Restful API Basic testing" do
   before :all do
@@ -40,6 +41,24 @@ describe "Upyun Restful API Basic testing" do
         'x-gmkerl-unsharp' => true
       }
       expect(@upyun.put(@path, @file, headers)).to be true
+    end
+
+    describe "PUT a file while the path is not encoded" do
+      before(:all) { @path_cn = '/ruby-sdk/这是中文路径/foo.txt' }
+
+      it "should success" do
+        expect(@upyun.put(@path_cn, @str)).to be true
+      end
+
+      it "then get the non encoded path also success" do
+        expect(@upyun.get(@path_cn)).to eq(@str)
+      end
+
+      it "then get the encoded path should also success" do
+        expect(@upyun.get(URI.encode(@path_cn))).to eq(@str)
+      end
+
+      after(:all) { @upyun.delete(@path_cn) }
     end
 
     after { @upyun.delete(@path) }
@@ -124,7 +143,7 @@ describe "Upyun Restful API Basic testing" do
   end
 end
 
-describe "Form Upload" do
+describe "Form Upload", current: true do
   before :all do
     @form = Upyun::Form.new('ESxWIoMmF39nSDY7CSFUsC7s50U=', 'sdkfile')
     @file = File.expand_path('../upyun.jpg', __FILE__)

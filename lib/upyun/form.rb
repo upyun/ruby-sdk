@@ -33,10 +33,12 @@ module Upyun
     )
 
     attr_accessor :bucket, :password
+    attr_reader :options
 
-    def initialize(password, bucket)
+    def initialize(password, bucket, options={timeout: 60})
       @password = password
       @bucket = bucket
+      @options = options
       @endpoint = ED_AUTO
     end
 
@@ -53,7 +55,7 @@ module Upyun
         file: File.new(file, 'rb')
       }
 
-      RestClient.post("http://#{@endpoint}/#{@bucket}", payload) do |res|
+      rest_client.post(payload, {'User-Agent' => "Upyun-Ruby-SDK-#{VERSION}"}) do |res|
         case res.code
         when 302
           res
@@ -82,6 +84,10 @@ module Upyun
           (v = opts[e]) ? memo.merge!({e => v}) : memo
         end
         policies.to_json
+      end
+
+      def rest_client
+        @rest_clint ||= RestClient::Resource.new("http://#{@endpoint}/#{@bucket}", options)
       end
   end
 end

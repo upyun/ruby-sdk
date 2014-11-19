@@ -39,13 +39,14 @@ $ gem install upyun
 ```ruby
 require 'upyun'
 
-upyun = Upyun::Rest.new('bucket', 'operator', 'password', 'endpoint')
+upyun = Upyun::Rest.new('bucket', 'operator', 'password', 'options', 'endpoint')
 ```
 **参数**
 
 * `bucket`: UPYUN 空间名称
 * `operator`: 授权操作员帐号
 * `password`: 授权操作员密码
+* `options`: 连接选项，可用的选项见[RestClient::Resource](https://github.com/rest-client/rest-client/blob/master/lib/restclient/resource.rb), 默认设置超时时间 60s
 * `endpoint`（可选）（默认：`Upyun::ED_AUTO`）: API接入点，可根据具体网络情况设置最优的接入点，详情见 [API 域名](http://docs.upyun.com/api/)
 
 其中 `endpoint` 可选值如下：
@@ -222,13 +223,14 @@ upyun.usage
 ```ruby
 require 'upyun'
 
-upyun = Upyun::Form.new('form-api-secret', 'bucket')
+upyun = Upyun::Form.new('form-api-secret', 'bucket', 'options')
 ```
 
 **参数**
 
-* `form-api-secret`: 表单 API 密钥，可通过 UPYUN 用户控制面板获取。
+* `form-api-secret`: 表单 API 密钥，可通过 UPYUN 用户控制面板获取
 * `bucket`: UPYUN 空间名称
+* `options`: 连接选项，可用的选项见[RestClient::Resource](https://github.com/rest-client/rest-client/blob/master/lib/restclient/resource.rb), 默认设置超时时间 60s
 
 与 Rest API 相似， 表单 API 也有个实例变量 `endpoint` 代表又拍云基本域名，默认设置为 `Upyun::ED_AUTO` ，也可以在初始化一个实例之后通过如下方式切换：
 
