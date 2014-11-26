@@ -93,8 +93,12 @@ upyun.put('/save/to/path', 'file or binary', headers)
 
 **返回**
 
-上传成功返回 `true`，失败返回一个 `Hash` 结构: `{error: {code: code, message: message}}`,
-其中 `code` 为又拍云返回的错误码, `message` 为错误信息。
+上传成功返回 `true`，失败返回一个 `Hash` 结构: `{request_id: request_id, error: {code: code, message: message}}`,
+其中：
+
+* `request_id` 为本次请求的请求码，由 UPYUN 本台返回，可用该值查询 UPYUN 日志;
+* `code` 为又拍云返回的错误码；
+* `message` 为错误信息；
 
 
 #### 下载文件
@@ -110,8 +114,13 @@ file = upyun.get('/path/to/file')
 * `'/path/to/file'`: 文件在 UPYUN 空间中的路径
 
 **返回**
-下载成功返回文件信息，失败返回一个 `Hash`: `{error: {code: code, message: message}}`,
-其中 `code` 为又拍云返回的错误码, `message` 为错误信息。
+下载成功返回文件信息，失败返回一个 `Hash`: `{request_id: request_id, error: {code: code, message: message}}`,
+其中：
+
+* `request_id` 为本次请求的请求码，由 UPYUN 本台返回，可用该值查询 UPYUN 日志;
+* `code` 为又拍云返回的错误码；
+* `message` 为错误信息；
+
 
 ##### 保存文件至本地
 
@@ -125,7 +134,7 @@ upyun.get('/path/to/file', 'saved/foo.png')
 * `saved/foo.png`: 文件本地保存路径
 
 **返回**
-下载成功返回获取的文件长度。
+下载成功返回获取的文件长度, 失败返回内容和上例一致。
 
 
 #### 获取文件信息
@@ -151,7 +160,7 @@ upyun.getinfo('/path/to/file')
   * `:file_size` 是文件的大小
   * `:file_date` 是文件最后的更改时间。
 
-失败返回一个 `Hash`: `{error: {code: code, message: message}}`。
+失败返回一个 `Hash`: `{request_id: request_id, error: {code: code, message: message}}`。
 
 
 #### 删除文件或者目录
@@ -167,7 +176,7 @@ upyun.delete('/path/to/file')
 
 成功返回: `true`,
 
-失败返回一个 `Hash`: `{error: {code: code, message: message}}`。
+失败返回一个 `Hash`: `{request_id: request_id, error: {code: code, message: message}}`。
 
 #### 创建目录
 
@@ -183,7 +192,7 @@ upyun.mkdir('/path/to/dir')
 
 成功返回: `true`,
 
-失败返回一个 `Hash`: `{error: {code: code, message: message}}`。
+失败返回一个 `Hash`: `{request_id: request_id, error: {code: code, message: message}}`。
 
 #### 获取目录文件列表
 
@@ -202,7 +211,7 @@ upyun.getlist('/path/to/dir')
  {:name=>"bar.txt", :type=>:file, :length=>25, :last_modified=>1415261057}]
 ```
 
-失败返回一个 `Hash`: `{error: {code: code, message: message}}`。
+失败返回一个 `Hash`: `{request_id: request_id, error: {code: code, message: message}}`。
 
 #### 获取空间使用情况
 
@@ -214,7 +223,7 @@ upyun.usage
 
 成功返回空间使用量（单位为 `Byte`）: `12400`,
 
-失败返回一个 `Hash`: `{error: {code: code, message: message}}`。
+失败返回一个 `Hash`: `{request_id: request_id, error: {code: code, message: message}}`。
 
 ### Form API 使用
 
