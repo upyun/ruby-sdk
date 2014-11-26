@@ -25,7 +25,20 @@ module Upyun
                   {body: file, length: file.length, headers: headers}
                 end
 
-      request(:put, path, options)
+      # If the type of current bucket is Picture,
+      # put an image maybe return a set of headers
+      # represent the image's metadata
+      # x-upyun-width
+      # x-upyun-height
+      # x-upyun-frames
+      # x-upyun-file-type
+      res = request(:put, path, options) do |hds|
+        hds.select { |k| k.to_s.match(/^x_upyun_/i) }.reduce({}) do |memo, (k, v)|
+          memo.merge!({k[8..-1].to_sym => /^\d+$/.match(v) ? v.to_i : v})
+        end
+      end
+
+      res == {} ? true : res
     end
 
     def get(path, savepath=nil)
@@ -38,9 +51,18 @@ module Upyun
     end
 
     def getinfo(path)
-      hds = request(:head, path)
-      hds = hds.key?(:error) ? hds : format_info(hds)
+      request(:head, path) do |hds|
+        #  File info:
+        #  x-upyun-file-type
+        #  x-upyun-file-size
+        #  x-upyun-file-date
+        hds.select { |k| k.to_s.match(/^x_upyun_file/i) }.reduce({}) do |memo, (k, v)|
+          memo.merge!({k[8..-1].to_sym => /^\d+$/.match(v) ? v.to_i : v})
+        end
+      end
     end
+
+    alias :head :getinfo
 
     def delete(path)
       request(:delete, path)
@@ -54,8 +76,8 @@ module Upyun
       res = request(:get, path)
       return res if res.is_a?(Hash)
 
-      res.split('\n').map do |f|
-        attrs = f.split('\t')
+      res.split("\n").map do |f|
+        attrs = f.split("\t")
         {
           name: attrs[0],
           type: attrs[1] == 'N' ? :file : :folder,
@@ -76,19 +98,12 @@ module Upyun
 
     private
 
-      def format_info(hds)
-        selected = hds.select { |k| k.to_s.match(/^x_upyun/i) }
-        selected.reduce({}) do |memo, (k, v)|
-          memo.merge!({k[8..-1].to_sym => /^\d+$/.match(v) ? v.to_i : v})
-        end
-      end
-
       def fullpath(path)
-        decoded = URI::encode(URI::decode(path.force_encoding('utf-8')))
+        decoded = URI::encode(URI::decode(path.to_s.force_encoding('utf-8')))
         "/#{@bucket}#{decoded.start_with?('/') ? decoded : '/' + decoded}"
       end
 
-      def request(method, path, options={})
+      def request(method, path, options={}, &block)
         fullpath = fullpath(path)
         query = options[:query]
         fullpath_query = "#{fullpath}#{query.nil? ? '' : '?' + query}"
@@ -104,21 +119,32 @@ module Upyun
         if [:post, :patch, :put].include? method
           body = options[:body].nil? ? '' : options[:body]
           rest_client[fullpath_query].send(method, body, headers) do |res|
-            res.code == 200 ? true : {error: {code: res.code, message: res.body}}
+            if res.code / 100 == 2
+              block_given? ? yield(res.headers) : true
+            else
+              {
+                request_id: res.headers[:x_request_id],
+                error: {code: res.code, message: res.body}
+              }
+            end
           end
+
         else
           rest_client[fullpath_query].send(method, headers) do |res|
-            if res.code == 200
+            if res.code / 100 == 2
               case method
               when :get
                 res.body
               when :head
-                res.headers
+                yield(res.headers)
               else
                 true
               end
             else
-              {error: {code: res.code, message: res.body}}
+            {
+              request_id: res.headers[:x_request_id],
+              error: {code: res.code, message: res.body}
+            }
             end
           end
         end

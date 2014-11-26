@@ -3,7 +3,7 @@ require 'uri'
 
 describe "Upyun Restful API Basic testing" do
   before :all do
-    @upyun = Upyun::Rest.new('sdkfile', 'tester', 'grjxv2mxELR3')
+    @upyun = Upyun::Rest.new('sdkfile', 'tester', 'grjxv2mxELR3', {}, Upyun::ED_TELECOM)
     @file = File.expand_path('../upyun.jpg', __FILE__)
     @str = 'This is a binary string, not a file'
   end
@@ -59,6 +59,16 @@ describe "Upyun Restful API Basic testing" do
       end
 
       after(:all) { @upyun.delete(@path_cn) }
+    end
+
+    it "put a file to Picture bucket should return the image's metadata" do
+      upyunp = Upyun::Rest.new('sdkimg', 'tester', 'grjxv2mxELR3', {}, Upyun::ED_TELECOM)
+      metas = upyunp.put(@path, @file, content_type: 'image/jpeg')
+      expect(metas).to include(:width, :height, :frames, :file_type)
+      expect(metas[:width].is_a?(Integer))
+      expect(metas[:height].is_a?(Integer))
+      expect(metas[:frames].is_a?(Integer))
+      expect(metas[:file_type].is_a?(String))
     end
 
     after { @upyun.delete(@path) }
@@ -121,7 +131,7 @@ describe "Upyun Restful API Basic testing" do
   end
 
   describe ".mkdir" do
-    before(:all) { @path = '/ruby-skd/foo/dir' }
+    before(:all) { @path = '/ruby-sdk/foo/dir' }
 
     it "should success" do
       expect(@upyun.mkdir(@path)).to be true
@@ -131,8 +141,21 @@ describe "Upyun Restful API Basic testing" do
   end
 
   describe ".getlist" do
+    before :all do
+      @dir = '/ruby-sdk/foo'
+      10.times { |i| @upyun.put("#@dir/#{i}", @file) }
+    end
+
     it "should get a list of file record" do
       expect(@upyun.getlist("/")).to be_instance_of(Array)
+    end
+
+    it "should return the correct number of records" do
+      expect(@upyun.getlist(@dir).length).to eq(10)
+    end
+
+    after :all do
+      10.times { |i| @upyun.delete("#@dir/#{i}") }
     end
   end
 
