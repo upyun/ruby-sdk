@@ -52,7 +52,7 @@ module Upyun
       payload = {
         policy: policy(base_opts.merge(opts)),
         signature: signature,
-        file: File.new(file, 'rb')
+        file: file.is_a?(File) ? file : File.new(file, 'rb')
       }
 
       rest_client.post(payload, {'User-Agent' => "Upyun-Ruby-SDK-#{VERSION}"}) do |res|
