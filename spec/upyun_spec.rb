@@ -1,3 +1,4 @@
+# encoding: utf-8
 require File.dirname(__FILE__) + '/spec_helper'
 require 'uri'
 
@@ -23,10 +24,10 @@ describe "Upyun Restful API Basic testing" do
   end
 
   describe ".put" do
-    before { @path = '/ruby-sdk/foo/test.jpg' }
+    before { @path = "/ruby-sdk/foo/#{String.random}/test.jpg" }
 
     it "PUT a file" do
-      expect(@upyun.put(@path, @file)).to be true
+      expect(@upyun.put(@path, File.new(@file, 'rb'))).to be true
     end
 
     it "PUT a binary string" do
@@ -40,11 +41,11 @@ describe "Upyun Restful API Basic testing" do
         'x-gmkerl-value' => 42,
         'x-gmkerl-unsharp' => true
       }
-      expect(@upyun.put(@path, @file, headers)).to be true
+      expect(@upyun.put(@path, File.new(@file, 'rb'), headers)).to be true
     end
 
-    describe "PUT a file while the path is not encoded" do
-      before(:all) { @path_cn = '/ruby-sdk/这是中文路径/foo.txt' }
+    describe "PUT while the path is not encoded" do
+      before(:all) { @path_cn = '/ruby-sdk/foo/这是中文路径/foo.txt' }
 
       it "should success" do
         expect(@upyun.put(@path_cn, @str)).to be true
@@ -63,7 +64,7 @@ describe "Upyun Restful API Basic testing" do
 
     it "put a file to Picture bucket should return the image's metadata" do
       upyunp = Upyun::Rest.new('sdkimg', 'tester', 'grjxv2mxELR3', {}, Upyun::ED_TELECOM)
-      metas = upyunp.put(@path, @file, content_type: 'image/jpeg')
+      metas = upyunp.put(@path, File.new(@file), content_type: 'image/jpeg')
       expect(metas).to include(:width, :height, :frames, :file_type)
       expect(metas[:width].is_a?(Integer))
       expect(metas[:height].is_a?(Integer))
@@ -76,7 +77,7 @@ describe "Upyun Restful API Basic testing" do
 
   describe ".get" do
     before :all do
-      @path = '/ruby-sdk/foo/test.jpg'
+      @path = "/ruby-sdk/foo/#{String.random}/test.jpg"
       @upyun.put(@path, @str, {'Content-Type' => 'text/plain'})
     end
 
@@ -85,14 +86,14 @@ describe "Upyun Restful API Basic testing" do
     end
 
     it "GET a file and save" do
-      expect(@upyun.get(@path, './save.jpg')).not_to eq(404)
-      expect(File.exists?('./save.jpg')).to be true
+      expect(@upyun.get(@path, './save.jpg')).to eq(@str.length)
+      expect(File.exists?('./save.jpg')).to eq(true)
       expect(File.read('./save.jpg')).to eq(@str)
       File.delete('./save.jpg')
     end
 
     it "GET a not-exist file" do
-      res = @upyun.get('/ruby-sdk/foo/test-not-exist.jpg')
+      res = @upyun.get("/ruby-sdk/foo/#{String.random}/test-not-exist.jpg")
       expect(res.is_a?(Hash) && res[:error][:code] == 404)
     end
 
@@ -101,7 +102,7 @@ describe "Upyun Restful API Basic testing" do
 
   describe ".getinfo" do
     before :all do
-      @dir = '/ruby-sdk/foo'
+      @dir = "/ruby-sdk/foo/#{String.random}"
       @path = "#{@dir}/test.jpg"
       @upyun.put(@path, @str, {'Content-Type' => 'text/plain'})
     end
@@ -121,8 +122,8 @@ describe "Upyun Restful API Basic testing" do
 
   describe ".delete" do
     before do
-      @path = '/ruby-sdk/foo/test.jpg'
-      @upyun.put(@path, @file)
+      @path = "/ruby-sdk/foo/#{String.random}/test.jpg"
+      @upyun.put(@path, File.new(@file))
     end
 
     it "DELETE a file" do
@@ -131,7 +132,7 @@ describe "Upyun Restful API Basic testing" do
   end
 
   describe ".mkdir" do
-    before(:all) { @path = '/ruby-sdk/foo/dir' }
+    before(:all) { @path = "/ruby-sdk/foo/dir/#{String.random}" }
 
     it "should success" do
       expect(@upyun.mkdir(@path)).to be true
@@ -142,8 +143,8 @@ describe "Upyun Restful API Basic testing" do
 
   describe ".getlist" do
     before :all do
-      @dir = '/ruby-sdk/foo'
-      10.times { |i| @upyun.put("#@dir/#{i}", @file) }
+      @dir = "/ruby-sdk/foo/#{String.random}"
+      10.times { |i| @upyun.put("#@dir/#{i}", File.new(@file)) }
     end
 
     it "should get a list of file record" do
@@ -187,13 +188,22 @@ describe "Form Upload", current: true do
   end
 
   describe ".upload" do
-    it "with default attributes should success" do
+    it "with file path should success" do
       res = @form.upload(@file)
       expect(res.keys).to include(:code, :message, :url, :time)
       expect(res[:code]).to eq(200)
       expect(res[:message]).to match(/ok/)
       now = Time.now
       expect(res[:url]).to eq("/#{now.year}/#{now.mon}/#{now.day}/upyun.jpg")
+    end
+
+    it "with file descriptor should success" do
+      fd = File.new(@file, 'rb')
+      res = @form.upload(fd)
+      expect(res.keys).to include(:code, :message, :url, :time)
+      expect(res[:code]).to eq(200)
+      expect(res[:message]).to match(/ok/)
+      expect(fd.closed?).to eq(true)
     end
 
     it "set 'save-key' should success" do
