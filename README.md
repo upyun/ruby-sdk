@@ -13,7 +13,7 @@
 在 `Gemfile` 中加入以下代码
 
 ```ruby
-gem 'upyun', '~> 1.0.3'
+gem 'upyun', '~> 1.0.4'
 ```
 
 然后执行如下命令安装:
@@ -74,12 +74,13 @@ upyun.endpoint = Upyun::ED_CMCC
 > 这种方式只指定了又拍云必选的 `Date`, `Content-Length` 两个 Header，其它 Header 信息均未指定
 
 ```ruby
-upyun.put('/save/to/path', 'file or binary')
+upyun.put('/save/to/path', File.new('file.txt', 'rb'))  # 上传一个文件
+upyun.put('/save/to/path', 'binary')                    # 直接上传内容
 ```
 **参数**
 
 * `/save/to/path`： 文件在 UPYUN 空间的保存路径
-* `file or binary`：本地文件路径或文件内容
+* `file or binary`：已打开的文件描述符或文件内容，如果为文件描述符，在上传结束后该描述符会自动关闭
 
 ##### 自定义方式
 您也可以选择使用 API 允许的额外可选 HTTP Header 参数，以使用 API 提供的预处理等功能：
@@ -260,8 +261,10 @@ upyun.endpoint = Upyun::ED_CMCC
 > 使用简化版本，将不使用额外的策略参数:
 
 ```ruby
-upyun.upload('file')
+upyun.upload('filepath.png')
+upyun.upload(File.new('filepath.png'))
 ```
+参数可以是文件路径或者已经打开的文件文件描述符
 
 **返回**
 上传结果返回一个 `Hash` 结构:
