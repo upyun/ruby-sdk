@@ -17,13 +17,9 @@ module Upyun
     end
 
     def put(path, file, headers={})
-      raise ArgumentError, "'file' is not an instance of String" unless file.is_a?(String)
       headers = headers.merge({'mkdir' => true}) unless headers.key?('mkdir')
-      options = if File.file?(file)
-                  {body: File.read(file), length: File.size(file), headers: headers}
-                else
-                  {body: file, length: file.length, headers: headers}
-                end
+      body = file.respond_to?(:read) ? IO.binread(file) : file
+      options = {body: body, length: size(file), headers: headers}
 
       # If the type of current bucket is Picture,
       # put an image maybe return a set of headers
@@ -39,6 +35,8 @@ module Upyun
       end
 
       res == {} ? true : res
+    ensure
+      file.close if file.respond_to?(:close)
     end
 
     def get(path, savepath=nil)
@@ -161,6 +159,14 @@ module Upyun
       def sign(method, date, path, length)
         sign = "#{method.to_s.upcase}&#{path}&#{date}&#{length}&#{@password}"
         "UpYun #{@operator}:#{md5(sign)}"
+      end
+
+      def size(param)
+        if param.respond_to?(:size)
+          param.size
+        elsif param.is_a?(IO)
+          param.stat.size
+        end
       end
   end
 end
