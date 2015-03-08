@@ -39,8 +39,8 @@ module Upyun
       file.close if file.respond_to?(:close)
     end
 
-    def get(path, savepath=nil)
-      res = request(:get, path)
+    def get(path, savepath=nil, headers={})
+      res = request(:get, path, headers: headers)
       return res if res.is_a?(Hash) || !savepath
 
       dir = File.dirname(savepath)
