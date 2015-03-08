@@ -1,5 +1,10 @@
 ## CHANGE LOG
 
+### v1.0.5
+- GET 请求支持自定义 Headers
+- 修正 Readme 说明
+- 修正一个测试用例对 `Time.now` 的格式误用
+
 ### v1.0.4
 - 修正上传的参数为文件内容或者是文件描述符
 - ActiveSupport 的依赖放宽到 3.2.8 或以上
