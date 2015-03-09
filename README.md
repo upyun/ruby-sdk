@@ -39,15 +39,17 @@ $ gem install upyun
 ```ruby
 require 'upyun'
 
-upyun = Upyun::Rest.new('bucket', 'operator', 'password', 'options', 'endpoint')
+upyun = Upyun::Rest.new(bucket, operator, password, options, endpoint)
 ```
 **参数**
 
-* `bucket`: UPYUN 空间名称
-* `operator`: 授权操作员帐号
-* `password`: 授权操作员密码
-* `options`: 连接选项，可用的选项见[RestClient::Resource](https://github.com/rest-client/rest-client/blob/master/lib/restclient/resource.rb), 默认设置超时时间 60s
-* `endpoint`（可选）（默认：`Upyun::ED_AUTO`）: API接入点，可根据具体网络情况设置最优的接入点，详情见 [API 域名](http://docs.upyun.com/api/)
+| 参数名  | 类型  | 可选 | 说明 |
+|:-------------:|:--------:|-------:| ------------- |
+| `bucket`      | `String` | 必选 | UPYUN 空间名称|
+| `operator`    | `String` | 必选 | 授权操作员帐号|
+| `password`    | `String` | 必选 | 授权操作员密码|
+| `options`     | `Hash`   | 可选 | 连接选项，可用的选项见[RestClient::Resource](https://github.com/rest-client/rest-client/blob/master/lib/restclient/resource.rb), 默认设置超时时间 60s |
+| `endpoint`    | `String` |  可选 | （默认：`Upyun::ED_AUTO`）: API接入点，可根据具体网络情况设置最优的接入点，详情见 [API 域名](http://docs.upyun.com/api/) |
 
 其中 `endpoint` 可选值如下：
 
@@ -90,12 +92,17 @@ headers = {'Content-Type' => 'image/jpeg', 'x-gmkerl-type' => 'fix_width', 'x-gm
 upyun.put('/save/to/path', 'file or binary', headers)
 ```
 
-其中， `/save/to/path` 和 `file or binary` 和默认上传方式中一致，`headers` 参数即为额外的可选 HTTP Header 参数，详情查阅 [Rest API](http://docs.upyun.com/api/rest_api/#_4)
+其中， `/save/to/path` 和 `file or binary` 和默认上传方式中一致，`headers` 参数即为额外的可选 HTTP Header 参数，
+详情查阅 [Rest API](http://docs.upyun.com/api/rest_api/#_4)
 
 **返回**
 
-上传成功返回 `true`，失败返回一个 `Hash` 结构: `{request_id: request_id, error: {code: code, message: message}}`,
-其中：
+上传成功:
+
+  * 如果是图片空间，返回图片原信息，如 `{:height=>629, :file_type=>"JPEG", :width=>440, :frames=>1}`
+  * 如果是其它空间，返回 `true`，
+
+失败返回一个 `Hash` 结构: `{request_id: request_id, error: {code: code, message: message}}`, 其中：
 
 * `request_id` 为本次请求的请求码，由 UPYUN 本台返回，可用该值查询 UPYUN 日志;
 * `code` 为又拍云返回的错误码；
@@ -126,13 +133,14 @@ file = upyun.get('/path/to/file')
 ##### 保存文件至本地
 
 ```ruby
-upyun.get('/path/to/file', 'saved/foo.png')
+upyun.get('/path/to/file', 'saved/foo.png', headers)
 ```
 
 **参数**
 
 * `'/path/to/file'`: 文件在 UPYUN 空间中的路径
 * `saved/foo.png`: 文件本地保存路径
+* `headers`: 指定下载时的头信息，默认为 `{}`
 
 **返回**
 下载成功返回获取的文件长度, 失败返回内容和上例一致。

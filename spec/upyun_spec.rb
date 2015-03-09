@@ -92,6 +92,11 @@ describe "Upyun Restful API Basic testing" do
       File.delete('./save.jpg')
     end
 
+    it "GET a file with Accept Header" do
+      expect(@upyun.get(@path, nil, {'Accept' => '*/*'})).to eq(@str)
+    end
+
+
     it "GET a not-exist file" do
       res = @upyun.get("/ruby-sdk/foo/#{String.random}/test-not-exist.jpg")
       expect(res.is_a?(Hash) && res[:error][:code] == 404)
@@ -193,8 +198,7 @@ describe "Form Upload", current: true do
       expect(res.keys).to include(:code, :message, :url, :time)
       expect(res[:code]).to eq(200)
       expect(res[:message]).to match(/ok/)
-      now = Time.now
-      expect(res[:url]).to eq("/#{now.year}/#{now.mon}/#{now.day}/upyun.jpg")
+      expect(res[:url]).to eq(Time.now.utc.strftime('/%Y/%m/%d/upyun.jpg'))
     end
 
     it "with file descriptor should success" do
