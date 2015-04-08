@@ -58,13 +58,24 @@ module Upyun
       rest_client.post(payload, {'User-Agent' => "Upyun-Ruby-SDK-#{VERSION}"}) do |res|
         case res.code
         when 302
-          res
+
+          # return 302 when set 'return-url' in opts
+          hds = res.headers
+          body = CGI::parse(URI.parse(hds[:location]).query).reduce({}) do |memo, (k, v)|
+            memo.merge!({k.to_sym => v.first})
+          end
+
+          body[:code] = body[:code].to_i
+          body[:time] = body[:time].to_i
+          body[:request_id] = hds[:x_request_id]
+          body
         else
           body = JSON.parse(res.body, symbolize_names: true)
 
           # TODO Upyun have a small bug for the `code`,
           # we have to adjust it to integer
           body[:code] = body[:code].to_i
+          body[:request_id] = res.headers[:x_request_id]
           body
         end
       end
