@@ -100,6 +100,7 @@ describe "Upyun Restful API Basic testing" do
     it "GET a not-exist file" do
       res = @upyun.get("/ruby-sdk/foo/#{String.random}/test-not-exist.jpg")
       expect(res.is_a?(Hash) && res[:error][:code] == 404)
+      expect(res[:request_id]).to be_instance_of(String)
     end
 
     after(:all) { @upyun.delete(@path) }
@@ -222,20 +223,24 @@ describe "Form Upload", current: true do
       expect(res[:message]).to match(/Authorize has expired/)
     end
 
-    it "set 'return-url' should return 302 with 'location' header" do
+    it "set 'return-url' should a hash" do
       res = @form.upload(@file, {'return-url' => 'http://www.example.com'})
-      expect(res.code).to eq(302)
-      expect(res.headers.key?(:location)).to be true
+      expect(res).to be_instance_of(Hash)
+      expect(res[:code]).to eq(200)
+      expect(res[:time]).to be_instance_of(Fixnum)
+      expect(res[:request_id]).to be_instance_of(String)
     end
 
-    it "set 'return-url' and handle failed, should also return 302 with 'location' header" do
+    it "set 'return-url' and handle failed, should also return a hash" do
       opts = {
         'image-width-range' => '0,10',
         'return-url' => 'http://www.example.com'
       }
       res = @form.upload(@file, opts)
-      expect(res.code).to eq(302)
-      expect(res.headers.key?(:location)).to be true
+      expect(res).to be_instance_of(Hash)
+      expect(res[:code]).to eq(403)
+      expect(res[:time]).to be_instance_of(Fixnum)
+      expect(res[:request_id]).to be_instance_of(String)
     end
 
     it "set 'notify-url' should return 200 success" do
