@@ -1,5 +1,8 @@
 ## CHANGE LOG
 
+### v1.0.7
+- 表单上传返回的信息不论是否设置了 `return-url`, 返回信息一致
+
 ### v1.0.5
 - GET 请求支持自定义 Headers
 - 修正 Readme 说明

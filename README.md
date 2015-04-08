@@ -104,7 +104,7 @@ upyun.put('/save/to/path', 'file or binary', headers)
 
 失败返回一个 `Hash` 结构: `{request_id: request_id, error: {code: code, message: message}}`, 其中：
 
-* `request_id` 为本次请求的请求码，由 UPYUN 本台返回，可用该值查询 UPYUN 日志;
+* `request_id` 为本次请求的请求码，由 UPYUN 后台返回，可用该值查询 UPYUN 日志;
 * `code` 为又拍云返回的错误码；
 * `message` 为错误信息；
 
@@ -307,7 +307,7 @@ opts = {
 }
 upyun.upload('file', opts)
 ```
-特别地，如果指定了 `return-url`, 那么返回的是需要跳转的地址，
+特别地，如果指定了 `return-url`, 那么返回的需要跳转的地址等信息也在这个 `Hash` 结构中，
 详情查阅 [通知规则](http://docs.upyun.com/api/form_api/#notify_return)
 
 
