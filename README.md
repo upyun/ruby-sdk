@@ -300,7 +300,7 @@ upyun.upload(File.new('filepath.png'))
 
 ```ruby
 opts = {
-  'save_key' => '/foo/bar.jpg',
+  'save-key' => '/foo/bar.jpg',
   'content-type' => 'image/jpeg',
   'image-width-range' => '0,1024',
   'return-url' => 'http://www.example.com'
