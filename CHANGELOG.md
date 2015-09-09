@@ -1,5 +1,7 @@
 ## CHANGE LOG
 
+### v1.0.9
+
 ### v1.0.8
 - URI encode '[]'
 
