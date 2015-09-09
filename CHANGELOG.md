@@ -1,5 +1,8 @@
 ## CHANGE LOG
 
+### v1.0.8
+- URI encode '[]'
+
 ### v1.0.7
 - 表单上传返回的信息不论是否设置了 `return-url`, 返回信息一致
 
