@@ -98,6 +98,9 @@ module Upyun
 
       def fullpath(path)
         decoded = URI::encode(URI::decode(path.to_s.force_encoding('utf-8')))
+
+        # URI::encode did not encode '[]'
+        decoded = decoded.gsub('[', '%5B').gsub(']', '%5D')
         "/#{@bucket}#{decoded.start_with?('/') ? decoded : '/' + decoded}"
       end
 
