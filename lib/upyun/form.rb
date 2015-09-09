@@ -83,7 +83,7 @@ module Upyun
 
     private
       def policy(opts)
-        @_policy = Base64.encode64(policy_json(opts))
+        @_policy = Base64.strict_encode64(policy_json(opts))
       end
 
       def signature
