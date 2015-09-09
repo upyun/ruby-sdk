@@ -26,25 +26,36 @@ describe "Upyun Restful API Basic testing" do
   describe ".put" do
     before { @path = "/ruby-sdk/foo/#{String.random}/test.jpg" }
 
-    it "PUT a file" do
-      expect(@upyun.put(@path, File.new(@file, 'rb'))).to be true
+    it "PUT an image should return image information" do
+      metas = @upyun.put(@path, File.new(@file, 'rb'))
+      expect(metas).to include(:width, :height, :frames, :file_type)
+      expect(metas[:width].is_a?(Integer))
+      expect(metas[:height].is_a?(Integer))
+      expect(metas[:frames].is_a?(Integer))
+      expect(metas[:file_type].is_a?(String))
     end
 
-    it "PUT a binary string" do
+    it "PUT a binary string should return no more information" do
       expect(@upyun.put(@path, @str)).to be true
     end
 
-    it "PUT with some extra process headers" do
+    it "PUT with some extra headers" do
       headers = {
         'Contetn-type' => 'image/jpeg',
         'x-gmkerl-type' => 'fix_width',
         'x-gmkerl-value' => 42,
         'x-gmkerl-unsharp' => true
       }
-      expect(@upyun.put(@path, File.new(@file, 'rb'), headers)).to be true
+      metas = @upyun.put(@path, File.new(@file, 'rb'), headers)
+
+      expect(metas).to include(:width, :height, :frames, :file_type)
+      expect(metas[:width].is_a?(Integer))
+      expect(metas[:height].is_a?(Integer))
+      expect(metas[:frames].is_a?(Integer))
+      expect(metas[:file_type].is_a?(String))
     end
 
-    describe "PUT while the path is not encoded" do
+    describe "PUT in Chinese path" do
       before(:all) { @path_cn = '/ruby-sdk/foo/这是中文路径/foo.txt' }
 
       it "should success" do
@@ -59,10 +70,110 @@ describe "Upyun Restful API Basic testing" do
         expect(@upyun.get(URI.encode(@path_cn))).to eq(@str)
       end
 
+      it "after all, delete should success" do
+        expect(@upyun.delete(@path_cn)).to be true
+      end
+
       after(:all) { @upyun.delete(@path_cn) }
     end
 
-    it "put a file to Picture bucket should return the image's metadata" do
+    describe "PUT with '%2B' encoded url path" do
+      before(:all) do
+        @path_2b = '/ruby-sdk/foo/%2B/foo.txt'
+        @str_2b = 'This is 2b string binary.'
+      end
+
+      it "shoud success" do
+        expect(@upyun.put(@path_2b, @str_2b)).to be true
+      end
+
+      it "then get the same url should also success" do
+        expect(@upyun.get(@path_2b)).to eq(@str_2b)
+      end
+
+      it "then get replaced('%2B' -> '+') should also success" do
+        expect(@upyun.get(@path_2b.gsub("%2B", "+"))).to eq(@str_2b)
+      end
+
+      it "after all, delete should success" do
+        expect(@upyun.delete(@path_2b)).to be true
+      end
+
+      after(:all) { @upyun.delete(@path_2b) }
+    end
+
+    describe "PUT with '+' encoded url path" do
+      before(:all) do
+        @path_plus = '/ruby-sdk/foo/+/foo.txt'
+        @str_plus = 'This is plus string.'
+      end
+
+      it "should success" do
+        expect(@upyun.put(@path_plus, @str_plus)).to be true
+      end
+
+      it "then get the same url should also success" do
+        expect(@upyun.get(@path_plus)).to eq(@str_plus)
+      end
+
+      it "then get replaced('+' -> '%2B') should also success" do
+        expect(@upyun.get(@path_plus.gsub("+", "%2B"))).to eq(@str_plus)
+      end
+
+      it "after all, delete should success" do
+        expect(@upyun.delete(@path_plus)).to be true
+      end
+
+      after(:all) { @upyun.delete(@path_plus) }
+    end
+
+    describe "PUT with '%20' encoded url path" do
+      before(:all) do
+        @path_20 = '/ruby-sdk/bar/%20/foo.txt'
+        @str_20 = 'This is %20 string.'
+      end
+
+      it "should success" do
+        expect(@upyun.put(@path_20, @str_20)).to be true
+      end
+
+      it "then get the same url should also success" do
+        expect(@upyun.get(@path_20)).to eq(@str_20)
+      end
+
+      it "then get replaced('%20' -> ' ') should also success" do
+        expect(@upyun.get(@path_20.gsub("%20", " "))).to eq(@str_20)
+      end
+
+      it "after all, delete should success" do
+        expect(@upyun.delete(@path_20)).to be true
+      end
+
+      after(:all) { @upyun.delete(@path_20) }
+    end
+
+    describe "PUT with '[{}]' encoded url path" do
+      before(:all) do
+        @path_sq = '/ruby-sdk/bar/[f{o]/}o.txt'
+        @str_sq = 'This is %sq string.'
+      end
+
+      it "should success" do
+        expect(@upyun.put(@path_sq, @str_sq)).to be true
+      end
+
+      it "then get the same url should also success" do
+        expect(@upyun.get(@path_sq)).to eq(@str_sq)
+      end
+
+      it "after all, delete should success" do
+        expect(@upyun.delete(@path_sq)).to be true
+      end
+
+      after(:all) { @upyun.delete(@path_sq) }
+    end
+
+    it "Put a file to PICTURE bucket should return the image's metadata" do
       upyunp = Upyun::Rest.new('sdkimg', 'tester', 'grjxv2mxELR3', {}, Upyun::ED_TELECOM)
       metas = upyunp.put(@path, File.new(@file), content_type: 'image/jpeg')
       expect(metas).to include(:width, :height, :frames, :file_type)
@@ -208,7 +319,13 @@ describe "Form Upload", current: true do
       expect(res.keys).to include(:code, :message, :url, :time)
       expect(res[:code]).to eq(200)
       expect(res[:message]).to match(/ok/)
+      expect(res[:url]).to eq(Time.now.utc.strftime('/%Y/%m/%d/upyun.jpg'))
       expect(fd.closed?).to eq(true)
+    end
+
+    it "with default 'save-key' should return '%Y/%m/%d/{filename}{.suffix}'" do
+      res = @form.upload(@file)
+      expect(res[:url]).to eq(Time.now.utc.strftime('/%Y/%m/%d/upyun.jpg'))
     end
 
     it "set 'save-key' should success" do
@@ -223,7 +340,7 @@ describe "Form Upload", current: true do
       expect(res[:message]).to match(/Authorize has expired/)
     end
 
-    it "set 'return-url' should a hash" do
+    it "set 'return-url' should return a hash" do
       res = @form.upload(@file, {'return-url' => 'http://www.example.com'})
       expect(res).to be_instance_of(Hash)
       expect(res[:code]).to eq(200)
