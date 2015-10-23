@@ -337,7 +337,7 @@ describe "Form Upload", current: true do
     it "set not correct 'expiration' should return 403 with expired" do
       res = @form.upload(@file, {'expiration' => 102400})
       expect(res[:code]).to eq(403)
-      expect(res[:message]).to match(/Authorize has expired/)
+      expect(res[:message]).to match(/authorization has expired/)
     end
 
     it "set 'return-url' should return a hash" do
