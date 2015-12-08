@@ -295,6 +295,41 @@ upyun.upload(File.new('filepath.png'))
 * `sign`: 签名参数，详情见 [sign与non-sign参数说明](http://docs.upyun.com/api/form_api/#note6)
 * 如果在请求中指定了 `ext-param`, 那么返回的结构中也会有 `ext-param` 字段，详情见 [ext-param](http://docs.upyun.com/api/form_api/#note5)
 
+##### 生成上传URL
+客户端可以直接上传文件到upyun(而不先上传自己的主机再传到upyun)。
+
+```ruby
+def upyun_upload_url
+  file_key = SecureRandom.uuid
+  upyun = Upyun::Form.new('form-api-secret', 'bucket')
+  upyun_json = upyun.generate_upload_url('save-key'=> file_key,'content-type'=>'audio/mp3')
+
+  remote_link = 'https://' + bucket + '.b0.upaiyun.com/'+file_key
+  upload_url  = 'https://v0.api.upyun.com/' + bucket
+  render json: { remoteLink: remote_link,
+                 uploadUrl: upload_url,
+                 policy: upyun_json[:policy],
+                 signature: upyun_json[:signature] }
+end
+```
+
+```javascript
+$.get('/user/'+id+'/audio/upyun_upload_url', (function(question, response) {
+    var uploadData = new AudioData();
+    uploadData.append('signature', response.signature);
+    uploadData.append('policy', response.policy);
+    uploadData.append('file', mp3Blob);
+    $.ajax({
+        url: response.uploadUrl,
+        type: 'POST',
+        data: uploadData,
+        contentType: 'audio/mpeg',
+        processData: false
+    });
+}
+```
+
+
 ##### 自定义参数
 可以在上传的时候指定一些策略参数:
 
