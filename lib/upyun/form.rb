@@ -42,13 +42,15 @@ module Upyun
       @endpoint = ED_AUTO
     end
 
-    def upload(file, opts={})
-      base_opts = HashWithIndifferentAccess.new({
-        'bucket' => @bucket,
-        'save-key' => '/{year}/{mon}/{day}/{filename}{.suffix}',
-        'expiration' => Time.now.to_i + 600
-      })
+    def generate_upload_url(opts={})
+      payload = {
+        policy: policy(base_opts.merge(opts)),
+        signature: signature,
+        url: "#{base_opts['save-key']}",
+      }
+    end
 
+    def upload(file, opts={})
       payload = {
         policy: policy(base_opts.merge(opts)),
         signature: signature,
@@ -82,6 +84,14 @@ module Upyun
     end
 
     private
+      def base_opts
+        HashWithIndifferentAccess.new({
+          'bucket' => @bucket,
+          'save-key' => '/{year}/{mon}/{day}/{filename}{.suffix}',
+          'expiration' => Time.now.to_i + 600
+        })
+      end
+
       def policy(opts)
         @_policy = Base64.strict_encode64(policy_json(opts))
       end
