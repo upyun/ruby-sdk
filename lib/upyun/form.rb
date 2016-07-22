@@ -1,12 +1,10 @@
 # encoding: utf-8
 require 'restclient'
-require 'base64'
 require 'json'
-require 'active_support/hash_with_indifferent_access'
 
 module Upyun
-  class Form < FormSupport
-    include Utils
+  class Form < FormBase
+
     attr_reader :options
 
     def initialize(password, bucket, options={timeout: 60})
@@ -16,18 +14,11 @@ module Upyun
     end
 
     def upload(file, opts={})
-      base_opts = HashWithIndifferentAccess.new({
-        'bucket' => @bucket,
-        'save-key' => '/{year}/{mon}/{day}/{filename}{.suffix}',
-        'expiration' => Time.now.to_i + 600
-      })
-
       payload = {
-        policy: policy(base_opts.merge(opts)),
+        policy: policy(opts),
         signature: signature,
         file: file.is_a?(File) ? file : File.new(file, 'rb')
       }
-
       rest_client.post(payload, {'User-Agent' => "Upyun-Ruby-SDK-#{VERSION}"}) do |res|
         case res.code
         when 302
@@ -52,21 +43,6 @@ module Upyun
           body
         end
       end
-    end
-
-    def policy(opts)
-      @_policy = Base64.strict_encode64(policy_json(opts))
-    end
-
-    def signature
-      md5("#{@_policy}&#{@password}")
-    end
-
-    def policy_json(opts)
-      policies = VALID_PARAMS.reduce({}) do |memo, e|
-        (v = opts[e]) ? memo.merge!({e => v}) : memo
-      end
-      policies.to_json
     end
 
     def rest_client
