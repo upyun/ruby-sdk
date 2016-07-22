@@ -1,6 +1,7 @@
 require 'upyun/version'
 require 'upyun/utils'
 require 'upyun/rest'
+require 'upyun/form_base'
 require 'upyun/form'
 
 module Upyun
