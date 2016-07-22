@@ -32,7 +32,7 @@ module Upyun
     )
 
     attr_accessor :api_secret, :bucket, :password, :params
-    alias_method :api_secret, :password
+    alias_method :password, :api_secret
 
     def initialize(api_secret:, bucket:, params: {})
       @api_secret, @bucket, @params = api_secret, bucket, params
