@@ -5,39 +5,12 @@ require 'json'
 require 'active_support/hash_with_indifferent_access'
 
 module Upyun
-  class Form
+  class Form < FormSupport
     include Utils
-
-    VALID_PARAMS = %w(
-      bucket
-      save-key
-      expiration
-      allow-file-type
-      content-length-range
-      content-md5
-      content-secret
-      content-type
-      image-width-range
-      image-height-range
-      notify-url
-      return-url
-      x-gmkerl-thumbnail
-      x-gmkerl-type
-      x-gmkerl-value
-      x-gmkerl-quality
-      x-gmkerl-unsharp
-      x-gmkerl-rotate
-      x-gmkerl-crop
-      x-gmkerl-exif-switch
-      ext-param
-    )
-
-    attr_accessor :bucket, :password
     attr_reader :options
 
     def initialize(password, bucket, options={timeout: 60})
-      @password = password
-      @bucket = bucket
+      super(api_secret: password, bucket: bucket)
       @options = options
       @endpoint = ED_AUTO
     end
@@ -81,24 +54,23 @@ module Upyun
       end
     end
 
-    private
-      def policy(opts)
-        @_policy = Base64.strict_encode64(policy_json(opts))
-      end
+    def policy(opts)
+      @_policy = Base64.strict_encode64(policy_json(opts))
+    end
 
-      def signature
-        md5("#{@_policy}&#{@password}")
-      end
+    def signature
+      md5("#{@_policy}&#{@password}")
+    end
 
-      def policy_json(opts)
-        policies = VALID_PARAMS.reduce({}) do |memo, e|
-          (v = opts[e]) ? memo.merge!({e => v}) : memo
-        end
-        policies.to_json
+    def policy_json(opts)
+      policies = VALID_PARAMS.reduce({}) do |memo, e|
+        (v = opts[e]) ? memo.merge!({e => v}) : memo
       end
+      policies.to_json
+    end
 
-      def rest_client
-        @rest_clint ||= RestClient::Resource.new("http://#{@endpoint}/#{@bucket}", options)
-      end
+    def rest_client
+      @rest_clint ||= RestClient::Resource.new("http://#{@endpoint}/#{@bucket}", options)
+    end
   end
 end

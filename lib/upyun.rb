@@ -2,6 +2,7 @@ require 'upyun/version'
 require 'upyun/utils'
 require 'upyun/rest'
 require 'upyun/form'
+require 'upyun/form_support'
 
 module Upyun
   DOMAIN = 'api.upyun.com'
