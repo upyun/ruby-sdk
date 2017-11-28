@@ -30,6 +30,8 @@ module Upyun
       x-gmkerl-crop
       x-gmkerl-exif-switch
       ext-param
+      x-gmkerl-thumb
+      apps
     )
 
     attr_accessor :bucket, :password
